@@ -18,17 +18,43 @@ namespace MyWebApp.Controllers
             var students = await _studentService.GetStudents();
 
             
-            return View();
+            return View(students);
         }
 
         public ActionResult AddStudent()
         {
-            return View();
+            var studentViewModel = new StudentViewModel
+            {
+                Title = "Add New Student",
+                AddButtonTitle = "Add",
+                RedirectUrl = Url.Action("Index", "Student")
+            };
+            return View(StudentViewModel);
         }
 
-        public ActionResult EditStudent()
+        public async Task<ActionResult> DetailsOfStudent(int id)
         {
-            return View();
+            var student = await _studentService.GetStudentAsync(id);
+            return View(new StudentViewModel { Id = student.StudentID, Name = student.StudentName});
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> SaveStudent(StudentViewModel studentViewModel, string redirectUrl)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(studentViewModel);
+            }
+
+            var student = await _studentService.GetStudentAsync(studentViewModel.Id);
+            if (student != null)
+            {
+                student.StudentName = studentViewModel.Name;
+
+                await _studentService.UpdateStudentAsync(student);
+            }
+
+            return RedirectToLocal(redirectUrl);
         }
 
         public ActionResult DeleteStudent()
